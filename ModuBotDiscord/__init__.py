@@ -6,6 +6,7 @@ from ModuBotCore import ModuBotCore
 
 import discord
 from discord.ext import commands as discordCommands
+from discord.ui import View
 from ModuBotDiscord.commands import BaseCommand
 
 from .config import DiscordConfig
@@ -35,6 +36,7 @@ class ModuBotDiscord(ModuBotCore, discordCommands.Bot):
 
     async def setup_hook(self) -> None:
         await self._register_all_commands()
+        await self._register_all_views()
 
         synced_commands = await self.tree.sync()
         self.logger.info(
@@ -55,3 +57,18 @@ class ModuBotDiscord(ModuBotCore, discordCommands.Bot):
                     ):
                         command_instance: BaseCommand = obj()
                         await command_instance.register(self)
+
+    async def _register_all_views(self) -> None:
+        for filename in os.listdir("views"):
+            if filename.endswith(".py") and filename != "__init__.py":
+                view = importlib.import_module(f"views.{filename[:-3]}")
+                for item in dir(view):
+                    obj = getattr(view, item)
+                    if (
+                        isinstance(obj, type)
+                        and issubclass(obj, View)
+                        and obj is not View
+                    ):
+                        view_instance: View = obj()
+                        if view_instance.timeout is None:
+                            self.add_view(view_instance)
