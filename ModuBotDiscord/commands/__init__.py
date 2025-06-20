@@ -35,11 +35,43 @@ def check_permission(*permissions: PermissionEnum) -> Callable[[T], T]:
                 if not getattr(interaction.user.guild_permissions, perm.value, False)
             ]
             if missing:
+                missing_permissions = ", ".join(f"`{m}`" for m in missing)
                 await send_error(
                     interaction,
-                    f"You are missing the following permissions: {', '.join(missing)}",
+                    f"You are missing the following permissions: {missing_permissions}",
                 )
                 return None
+            return await func(interaction, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def check_bot_permission(*permissions: PermissionEnum) -> Callable[[T], T]:
+    def decorator(func: T) -> T:
+        @functools.wraps(func)
+        async def wrapper(interaction: Interaction, *args, **kwargs):
+            if not interaction.guild:
+                await send_error(
+                    interaction, "This command can only be used in a server."
+                )
+                return None
+
+            bot_permissions = interaction.guild.me.guild_permissions
+            missing = [
+                perm.value
+                for perm in permissions
+                if not getattr(bot_permissions, perm.value, False)
+            ]
+            if missing:
+                missing_permissions = ", ".join(f"`{m}`" for m in missing)
+                await send_error(
+                    interaction,
+                    f"The bot is missing the following permissions: {missing_permissions}",
+                )
+                return None
+
             return await func(interaction, *args, **kwargs)
 
         return wrapper
