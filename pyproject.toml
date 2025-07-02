@@ -1,6 +1,6 @@
 [project]
 name = "ModuBotDiscord"
-version = "0.3.0"
+version = "0.3.1"
 description = "Modular Discord bot framework built on top of ModuBotCore"
 authors = [{ name = "Endkind", email = "endkind.ender@endkind.net" }]
 readme = "README.md"

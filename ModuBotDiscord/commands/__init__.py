@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 
 async def send_message(
     interaction: Interaction,
-    msg: Optional[str] = None,
     content: Optional[str] = None,
+    msg: Optional[str] = None,
     *,
     embed: Optional[Embed] = None,
     embeds: Optional[List[Embed]] = None,
@@ -33,13 +33,15 @@ async def send_message(
     delete_after: Optional[float] = None,
     poll=None,
 ) -> None:
-    if content is None and msg is not None:
+    if msg is not None:
         warnings.warn(
             "`msg` is deprecated, use `content` instead",
             DeprecationWarning,
             stacklevel=2,
         )
-        content = msg
+
+        if content is None:
+            content = msg
 
     if not interaction.is_expired():
         if not interaction.response.is_done():
@@ -80,9 +82,9 @@ async def send_message(
 
 async def send_error(
     interaction: Interaction,
-    msg: Optional[str] = None,
     title: str = "⚠️ An error occurred",
     description: Optional[str] = None,
+    msg: Optional[str] = None,
 ) -> None:
     if msg is not None:
         warnings.warn(
