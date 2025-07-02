@@ -2,10 +2,11 @@ import functools
 import logging
 import warnings
 from abc import ABC, abstractmethod
-from typing import Awaitable, Callable, List, Optional, TypeVar
+from typing import Awaitable, Callable, List, Optional, TypeVar, Union
 
 import discord
 from discord import Embed, Interaction
+from discord.utils import MISSING, _MissingSentinel
 from ModuBotDiscord.config import DiscordConfig
 
 from ..enums import PermissionEnum
@@ -20,18 +21,18 @@ async def send_message(
     content: Optional[str] = None,
     msg: Optional[str] = None,
     *,
-    embed: Optional[Embed] = None,
-    embeds: Optional[List[Embed]] = None,
-    file: Optional[discord.File] = None,
-    files: Optional[List[discord.File]] = None,
-    view: Optional[discord.ui.View] = None,
+    embed: Union[Embed, _MissingSentinel] = MISSING,
+    embeds: Union[List[Embed], _MissingSentinel] = MISSING,
+    file: Union[discord.File, _MissingSentinel] = MISSING,
+    files: Union[List[discord.File], _MissingSentinel] = MISSING,
+    view: Union[discord.ui.View, _MissingSentinel] = MISSING,
     tts: bool = False,
     ephemeral: bool = False,
-    allowed_mentions: Optional[discord.AllowedMentions] = None,
+    allowed_mentions: Union[discord.AllowedMentions, _MissingSentinel] = MISSING,
     suppress_embeds: bool = False,
     silent: bool = False,
     delete_after: Optional[float] = None,
-    poll=None,
+    poll: Union[discord.Poll, _MissingSentinel] = MISSING,
 ) -> None:
     if msg is not None:
         warnings.warn(
