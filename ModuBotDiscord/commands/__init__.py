@@ -2,7 +2,7 @@ import functools
 import logging
 import warnings
 from abc import ABC, abstractmethod
-from typing import Awaitable, Callable, List, Optional, TypeVar, Union
+from typing import Awaitable, Callable, Dict, List, Optional, Sequence, TypeVar, Union
 
 import discord
 from discord import Embed, Interaction
@@ -33,7 +33,11 @@ async def send_message(
     silent: bool = False,
     delete_after: Optional[float] = None,
     poll: Union[discord.Poll, _MissingSentinel] = MISSING,
-) -> None:
+) -> Optional[
+    Union[
+        discord.interactions.InteractionMessage, discord.webhook.async_.WebhookMessage
+    ]
+]:
     if msg is not None:
         warnings.warn(
             "`msg` is deprecated, use `content` instead",
@@ -44,41 +48,43 @@ async def send_message(
         if content is None:
             content = msg
 
-    if not interaction.is_expired():
-        if not interaction.response.is_done():
-            await interaction.response.send_message(
-                content=content,
-                embed=embed,
-                embeds=embeds,
-                file=file,
-                files=files,
-                view=view,
-                tts=tts,
-                ephemeral=ephemeral,
-                allowed_mentions=allowed_mentions,
-                suppress_embeds=suppress_embeds,
-                silent=silent,
-                delete_after=delete_after,
-                poll=poll,
-            )
-        else:
-            await interaction.followup.send(
-                content=content,
-                embed=embed,
-                embeds=embeds,
-                file=file,
-                files=files,
-                view=view,
-                tts=tts,
-                ephemeral=ephemeral,
-                allowed_mentions=allowed_mentions,
-                suppress_embeds=suppress_embeds,
-                silent=silent,
-                delete_after=delete_after,
-                poll=poll,
-            )
-    else:
+    if interaction.is_expired():
         logger.warning("Interaction is expired. Skipping send_message().")
+        return None
+
+    if interaction.response.is_done():
+        return await interaction.followup.send(
+            content=content,
+            embed=embed,
+            embeds=embeds,
+            file=file,
+            files=files,
+            view=view,
+            tts=tts,
+            ephemeral=ephemeral,
+            allowed_mentions=allowed_mentions,
+            suppress_embeds=suppress_embeds,
+            silent=silent,
+            poll=poll,
+        )
+
+    await interaction.response.send_message(
+        content=content,
+        embed=embed,
+        embeds=embeds,
+        file=file,
+        files=files,
+        view=view,
+        tts=tts,
+        ephemeral=ephemeral,
+        allowed_mentions=allowed_mentions,
+        suppress_embeds=suppress_embeds,
+        silent=silent,
+        delete_after=delete_after,
+        poll=poll,
+    )
+
+    return await interaction.original_response()
 
 
 async def send_error(
