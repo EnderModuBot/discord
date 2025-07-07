@@ -1,6 +1,6 @@
 [project]
 name = "ModuBotDiscord"
-version = "0.3.2"
+version = "0.4.0"
 description = "Modular Discord bot framework built on top of ModuBotCore"
 authors = [{ name = "Endkind", email = "endkind.ender@endkind.net" }]
 readme = "README.md"
@@ -16,3 +16,6 @@ include = ["ModuBotDiscord*"]
 
 [project.urls]
 "Source" = "https://github.com/EnderModuBot/discord"
+
+[tool.isort]
+profile = "black"
