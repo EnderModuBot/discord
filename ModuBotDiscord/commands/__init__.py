@@ -1,13 +1,19 @@
-import functools
 import logging
 import warnings
 from abc import ABC, abstractmethod
-from typing import Awaitable, Callable, Dict, List, Optional, Sequence, TypeVar, Union
+from typing import Awaitable, Callable, List, Optional, TypeVar, Union
 
 import discord
 from discord import Embed, Interaction
 from discord.utils import MISSING, _MissingSentinel
-from ModuBotDiscord.config import DiscordConfig
+from ModuBotDiscord.checks.owner import check_bot_owner as _check_bot_owner_new
+from ModuBotDiscord.checks.owner import check_guild_owner as _check_guild_owner_new
+from ModuBotDiscord.checks.permissions import (
+    check_bot_permission as _check_bot_permission_new,
+)
+from ModuBotDiscord.checks.permissions import check_permission as _check_permission_new
+from ModuBotDiscord.utils.messages import send_error as _send_error_new
+from ModuBotDiscord.utils.messages import send_message as _send_message_new
 
 from ..enums import PermissionEnum
 
@@ -38,6 +44,12 @@ async def send_message(
         discord.interactions.InteractionMessage, discord.webhook.async_.WebhookMessage
     ]
 ]:
+    warnings.warn(
+        "`ModuBotDiscord.commands.send_message` is deprecated, use `ModuBotDiscord.utils.messages.send_message` instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     if msg is not None:
         warnings.warn(
             "`msg` is deprecated, use `content` instead",
@@ -48,27 +60,8 @@ async def send_message(
         if content is None:
             content = msg
 
-    if interaction.is_expired():
-        logger.warning("Interaction is expired. Skipping send_message().")
-        return None
-
-    if interaction.response.is_done():
-        return await interaction.followup.send(
-            content=content,
-            embed=embed,
-            embeds=embeds,
-            file=file,
-            files=files,
-            view=view,
-            tts=tts,
-            ephemeral=ephemeral,
-            allowed_mentions=allowed_mentions,
-            suppress_embeds=suppress_embeds,
-            silent=silent,
-            poll=poll,
-        )
-
-    await interaction.response.send_message(
+    return await _send_message_new(
+        interaction=interaction,
         content=content,
         embed=embed,
         embeds=embeds,
@@ -84,8 +77,6 @@ async def send_message(
         poll=poll,
     )
 
-    return await interaction.original_response()
-
 
 async def send_error(
     interaction: Interaction,
@@ -93,6 +84,12 @@ async def send_error(
     description: Optional[str] = None,
     msg: Optional[str] = None,
 ) -> None:
+    warnings.warn(
+        "`ModuBotDiscord.commands.send_error` is deprecated, use `ModuBotDiscord.utils.messages.send_error` instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     if msg is not None:
         warnings.warn(
             "`msg` is deprecated, use `title` or `description` instead",
@@ -104,105 +101,47 @@ async def send_error(
         else:
             title = msg
 
-    embed: Embed = Embed(title=title, description=description, color=0xFF0000)
-    await send_message(interaction, embed=embed, ephemeral=True)
+    await _send_error_new(interaction=interaction, title=title, description=description)
 
 
 def check_permission(*permissions: PermissionEnum) -> Callable[[T], T]:
-    def decorator(func: T) -> T:
-        @functools.wraps(func)
-        async def wrapper(interaction: Interaction, *args, **kwargs):
-            missing = [
-                perm.value
-                for perm in permissions
-                if not getattr(interaction.user.guild_permissions, perm.value, False)
-            ]
-            if missing:
-                missing_permissions = ", ".join(f"`{m}`" for m in missing)
-                await send_error(
-                    interaction,
-                    title="🚫 Action not allowed",
-                    description=f"You are missing the following permissions: {missing_permissions}",
-                )
-                return None
-            return await func(interaction, *args, **kwargs)
+    warnings.warn(
+        "`ModuBotDiscord.commands.check_permission` is deprecated, use `ModuBotDiscord.checks.permissions.check_permission` instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
-        return wrapper
-
-    return decorator
+    return _check_permission_new(*permissions)
 
 
 def check_bot_permission(*permissions: PermissionEnum) -> Callable[[T], T]:
-    def decorator(func: T) -> T:
-        @functools.wraps(func)
-        async def wrapper(interaction: Interaction, *args, **kwargs):
-            if not interaction.guild:
-                await send_error(
-                    interaction,
-                    title="🚫 Action not allowed",
-                    description="This command can only be used in a server.",
-                )
-                return None
+    warnings.warn(
+        "`ModuBotDiscord.commands.check_bot_permission` is deprecated, use `ModuBotDiscord.checks.permissions.check_bot_permission` instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
-            bot_permissions = interaction.guild.me.guild_permissions
-            missing = [
-                perm.value
-                for perm in permissions
-                if not getattr(bot_permissions, perm.value, False)
-            ]
-            if missing:
-                missing_permissions = ", ".join(f"`{m}`" for m in missing)
-                await send_error(
-                    interaction,
-                    title="🚫 Action not allowed",
-                    description=f"The bot is missing the following permissions: {missing_permissions}",
-                )
-                return None
-
-            return await func(interaction, *args, **kwargs)
-
-        return wrapper
-
-    return decorator
+    return _check_bot_permission_new(*permissions)
 
 
 def check_bot_owner() -> Callable[[T], T]:
-    def decorator(func: T) -> T:
-        @functools.wraps(func)
-        async def wrapper(interaction: Interaction, *args, **kwargs):
-            if interaction.user.id != DiscordConfig.OWNER_ID:
-                await send_error(
-                    interaction,
-                    title="🚫 Action not allowed",
-                    description="You must be the bot owner to use this command.",
-                )
-                return None
-            return await func(interaction, *args, **kwargs)
+    warnings.warn(
+        "`ModuBotDiscord.commands.check_bot_owner` is deprecated, use `ModuBotDiscord.checks.owner.check_bot_owner` instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
-        return wrapper
-
-    return decorator
+    return _check_bot_owner_new()
 
 
 def check_guild_owner() -> Callable[[T], T]:
-    def decorator(func: T) -> T:
-        @functools.wraps(func)
-        async def wrapper(interaction: Interaction, *args, **kwargs):
-            if (
-                not interaction.guild
-                or interaction.user.id != interaction.guild.owner_id
-            ):
-                await send_error(
-                    interaction,
-                    title="🚫 Action not allowed",
-                    description="You must be the server owner to use this command.",
-                )
-                return None
-            return await func(interaction, *args, **kwargs)
+    warnings.warn(
+        "`ModuBotDiscord.commands.check_guild_owner` is deprecated, use `ModuBotDiscord.checks.owner.check_guild_owner` instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
-        return wrapper
-
-    return decorator
+    return _check_guild_owner_new()
 
 
 class BaseCommand(ABC):

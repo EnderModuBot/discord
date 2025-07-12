@@ -1,8 +1,7 @@
-import warnings
 from enum import Enum
 
 
-class PermissionEnum(str, Enum):
+class Permission(str, Enum):
     ADD_REACTIONS = "add_reactions"
     ADMINISTRATOR = "administrator"
     ATTACH_FILES = "attach_files"
@@ -60,10 +59,3 @@ class PermissionEnum(str, Enum):
     VIEW_CHANNEL = "view_channel"
     VIEW_CREATOR_MONETIZATION_ANALYTICS = "view_creator_monetization_analytics"
     VIEW_GUILD_INSIGHTS = "view_guild_insights"
-
-    def __new__(cls, value):
-        warnings.warn(
-            "`ModuBotDiscord.enums.permission.PermissionEnum` is deprecated, use `ModuBotDiscord.checks.permissions.Permission` instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
