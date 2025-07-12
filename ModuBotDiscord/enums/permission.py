@@ -67,3 +67,7 @@ class PermissionEnum(str, Enum):
             DeprecationWarning,
             stacklevel=2,
         )
+
+        obj = str.__new__(cls, value)
+        obj._value_ = value
+        return obj
