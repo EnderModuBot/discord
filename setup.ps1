@@ -13,7 +13,7 @@ Write-Host "Installing pre-commit and setting up hooks..." -ForegroundColor Yell
 pip install pre-commit
 pre-commit install
 
-if (-not (Test-Path ".venv")) {
+if (Test-Path "requirements.txt") {
     Write-Host "Installing dependencies from requirements.txt..." -ForegroundColor Yellow
     pip install -r requirements.txt
 }
