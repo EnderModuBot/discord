@@ -12,7 +12,7 @@ echo "Installing pre-commit and setting up hooks..."
 pip install pre-commit
 pre-commit install
 
-IF NOT EXIST .venv (
+IF EXIST requirements.txt (
     echo "Installing dependencies from requirements.txt..."
     pip install -r requirements.txt
 )
